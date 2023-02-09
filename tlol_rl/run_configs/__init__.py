@@ -19,3 +19,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+from absl import logging
+
+from tlol_rl.lib import lol_process
+from tlol_rl.run_configs import lib
+from tlol_rl.run_configs import platforms
+
+def get(game_server_dir):
+    """Get the config chosen by flags."""
+    configs = {c.name(): c
+        for c in lib.RunConfig.all_subclasses() if c.priority()}
+    
+    logging.info("List of run configs: " + ",".join([c for c in configs]))
+
+    if not configs:
+        raise lol_process.LoLLaunchError("No valid run_configs found.")
+    
+    return max(configs.values(), key=lambda c: c.priority())(game_server_dir)

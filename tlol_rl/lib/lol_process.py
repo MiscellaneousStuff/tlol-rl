@@ -25,6 +25,10 @@ set up communication."""
 import os
 
 
+class LoLLaunchError(Exception):
+    pass
+
+
 class LoLProcess(object):
     """Either launch a game of League of Legends or attach to an already
     running game, initialise a controller and later, clean up the environment.

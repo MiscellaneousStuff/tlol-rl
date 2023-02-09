@@ -25,6 +25,7 @@ from configparser import ConfigParser
 import collections
 from absl import logging
 
+from tlol_rl import run_configs
 from tlol_rl.env import environment
 
 
@@ -78,6 +79,10 @@ class LoLEnv(environment.Base):
                 logging.info("TLoL-RL Server (Directory): " + tlol_rl_server)
         except:
             raise IOError("Could not open config file: '%s'" % config_path)
+
+        self._map_name = map_name
+        self._run_config = run_configs.get(tlol_rl_server)
+        self._game_info = None
 
         self._finalise()
     
