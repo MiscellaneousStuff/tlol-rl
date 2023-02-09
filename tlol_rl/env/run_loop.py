@@ -21,5 +21,49 @@
 # SOFTWARE.
 """A run loop for agent/environment interaction."""
 
+from absl import logging
+import time
+
 def run_loop(agents, env, max_steps=0, max_episodes=0):
-    pass
+    # Connect
+    controller = env._controllers[0]
+    controller.connect()
+
+    # A run loop for agent/environment interaction
+    total_episodes = 0
+    steps = 0
+    start_time = time.time()
+
+    # Obs / Act Specs
+    observation_spec = [env.observation_spec() for _ in agents]
+    action_spec = [env.action_spec() for _ in agents]
+
+    # Agent Initialisation
+    for agent, obs_spec, act_spec in zip(agents, observation_spec, action_spec):
+        agent.setup(obs_spec, act_spec)
+    
+    try:
+        while not max_episodes or total_episodes < max_episodes:
+            total_episodes += 1
+            timesteps = env.reset()
+            
+            for a in agents:
+                a.reset()
+            while True:
+                steps += 1
+                if max_steps and steps > max_steps: # +1 for initial reset action
+                    return
+                logging.info("run_loop->step: " + str(steps))
+                actions = [agent.step(timestep)
+                           for agent, timestep in zip(agents, timesteps)]
+                
+                if timesteps[0].last():
+                    break
+                
+                timesteps = env.step(actions)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        elapsed_time = (time.time() - start_time) + 1e-9 # NOTE: Make sure it's never 0
+        print("Took %.3f seconds for %s steps: %.3f fps" % (
+            elapsed_time, steps-1, (steps-1) / elapsed_time))

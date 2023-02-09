@@ -34,10 +34,13 @@ flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
 flags.DEFINE_string("config_path", "./config.txt",
     "File containing directories of GameServer, League client respectively")
 flags.DEFINE_string("map", "Summoners Rift", "Name of league map to use.")
+flags.DEFINE_string("champion", None, "Champion for agent to play.")
+
+flags.mark_flag_as_required("champion")
 
 def main(unused_argv):
     agents  = [base_agent.BaseAgent()]
-    players = agents
+    players = [lol_env.Agent(champion=FLAGS.champion, team="BLUE")]
 
     with lol_env.LoLEnv(
         players=players,

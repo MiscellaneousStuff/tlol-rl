@@ -118,14 +118,14 @@ class LCU(object):
                 pass
         return None, None
 
-    def create_custom(self, title):
+    def create_custom(self, title, map_id=11):
         data = {
             "customGameLobby": {
                 "configuration": {
                     "gameMode": "PRACTICETOOL",
                     "gameMutator": "",
                     "gameServerRegion": "",
-                    "mapId": 11,
+                    "mapId": map_id,
                     "mutators": {"id": 1},
                     "spectatorPolicy": "AllAllowed",
                     "teamSize": 5

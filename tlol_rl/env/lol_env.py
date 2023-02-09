@@ -26,11 +26,20 @@ import time
 from configparser import ConfigParser
 import collections
 from absl import logging
+from pathlib import Path
+
 
 from tlol_rl import run_configs
 from tlol_rl.env import environment
 from tlol_rl.lib.lcu import LCU
 
+def get_champ_ids():
+    champ_ids = {}
+    with open(Path(__file__).parent / "./champ_ids.txt") as f:
+        for ln in f.read().split("\n"):
+            id, champ = ln.split(": ")
+            champ_ids[champ] = int(id)
+    return champ_ids
 
 class Agent(collections.namedtuple("Agent", ["champ", "team"])):
     """Define an Agent. Each agent has a champion and which team it belongs to."""
@@ -63,7 +72,8 @@ class LoLEnv(environment.Base):
             raise ValueError("You must specify a list of players.")
         for p in players:
             if not isinstance(p, (Agent)):
-                pass
+                raise ValueError(
+                    "Expected players to be of type Agent. Got: %s." % p)
         self.players = players
 
         # Assign number of agents
@@ -94,7 +104,8 @@ class LoLEnv(environment.Base):
         # Launch the client, create a custom game and join it
         self._launch_game(players=players,
                           map_name=map_name)
-        self._create_join()
+        self._create_join(players=players,
+                          map_name=map_name)
 
         # Finalise RL related variables for the environment
         self._finalise()
@@ -137,7 +148,7 @@ class LoLEnv(environment.Base):
         self._lol_procs   = [self._run_config.start(**kwargs)]
         self._controllers = [p.controller for p in self._lol_procs]
 
-    def _create_join(self):
+    def _create_join(self, **kwargs):
         """Create the custom game, and join it."""
         if not self._lcu.client_loaded():
             raise OSError("Could not find League of Legends client")
@@ -146,7 +157,7 @@ class LoLEnv(environment.Base):
             self._lcu.late_init()
 
             # Create custom game
-            res = self._lcu.create_custom(title="TLoL-RL")
+            res = self._lcu.create_custom(title="TLoL-RL", map_id=11)
             if not res.status_code == 200:
                 raise RuntimeError("Could not create custom game")
 
@@ -161,7 +172,9 @@ class LoLEnv(environment.Base):
                 raise RuntimeError("Could not start champion select")
             
             # Select champion
-            res = self._lcu.pick_champion(champ_id=523) # Aphelios
+            champ_ids = get_champ_ids()
+            res = self._lcu.pick_champion(
+                champ_id=champ_ids[kwargs["players"][0].champ]) # Aphelios
             if not res.status_code == 204:
                 raise RuntimeError("Could not pick champion")
 
