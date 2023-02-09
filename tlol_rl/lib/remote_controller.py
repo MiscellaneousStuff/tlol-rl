@@ -98,6 +98,10 @@ class RemoteController(object):
         self.r = None
         self._proc.kill()
 
+    def players_reset(self):
+        """Reset players for a new episode."""
+        logging.info("Resetting players for new episode.")
+
     # """Implement player actions and observations here..."""
 
     def restart(self):

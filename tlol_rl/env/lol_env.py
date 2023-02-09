@@ -132,18 +132,72 @@ class LoLEnv(environment.Base):
         resources which are no longer being used."""
         pass
 
-    def reset(self):
-        """Resets the current environment based on the initial
-        state of the environment."""
-        pass
+    def _restart(self):
+        # Restart the TLoL-RL server controllers
+        for c in self._controllers:
+            c.restart()
 
-    def step(self):
-        """Takes one step in the environment. In the context
-        of League of Legends, we can't fully control the environment
-        so this is just an observation / action based on how many
-        times we're taking observations and actions from the live
-        running game."""
-        pass
+    def reset(self):
+        """Starts a new episode."""
+        self._episode_steps = 0
+
+        # No need to restart for the first episode
+        if self._episode_count:
+            self._restart()
+
+        self._episode_count += 1
+
+        self._controllers[0].players_reset()
+
+        logging.info("Starting episode %s: on %s" % (self._episode_count, self._map_name))
+        self._state = environment.StepType.FIRST
+
+        return self._observe()
+    
+    def _get_observations(self):
+        """Get the raw observations from the controllers and
+        convert them into NumPy arrays."""
+        obs = [self._controllers[0].observe() for _ in self.players]
+        agent_obs = [self._features[0].transform_obs(o) for o in obs]
+        
+        # Save last observation to calculate rewards
+        self._last_agent_obs = self._agent_obs
+
+        # Set new observations
+        self._obs, self._agent_obs = obs, agent_obs
+
+    def _observe(self):
+        """Take the NumPy arrays from the raw observations and
+        convert them into `TimeStep`s."""
+        self._get_observations()
+
+        reward = 0
+
+        ret_val = tuple(environment.TimeStep(
+            step_type=self._state,
+            reward=r,
+            discount=1,
+            observation=o
+        ) for r, o in zip(reward, self._agent_obs))
+
+        return ret_val
+
+    def step(self, actions):
+        """Apply actions, step the world forward, and return observations.
+        Args:
+            actions: A list of actions meeting the action spec, one per agent, or a
+                list per agent. Using a list allows multiple actions per frame, but
+                will still check that they're valid, so disabling
+                ensure_available actions is encouraged.
+        
+        Returns:
+            A tuple of TimeStep namedtuples, one per agent."""
+
+        if self._state == environment.StepType.LAST:
+            return self.reset()
+        
+        self._state = environment.StepType.MID
+        return self._step()
 
     def _launch_game(self, **kwargs):
         """Either launch or attach to an existing game."""
@@ -175,6 +229,7 @@ class LoLEnv(environment.Base):
 
             # Start champion select
             res = self._lcu.start_champ_select()
+            print(res.status_code, res.text)
             if not res.status_code == 200:
                 raise RuntimeError("Could not start champion select")
             
@@ -186,4 +241,15 @@ class LoLEnv(environment.Base):
                 raise RuntimeError("Could not pick champion")
 
     def _finalise(self):
+        # Init episode / step counts
+        self._total_steps = 0
+        self._episode_steps = 0
+        self._episode_count = 0
+
+        # Init observations and environment state
+        self._last_agent_obs = [None] * self._num_agents
+        self._obs = [None] * self._num_agents
+        self._agent_obs = [None] * self._num_agents
+        self._state = environment.StepType.LAST
+
         logging.info("Environment is ready.")
