@@ -42,7 +42,9 @@ setup(
     keywords='League of Legends',
     url='https://github.com/MiscellaneousStuff/tlol-rl',
     packages=[
-        'tlol-rl'
+        'tlol_rl',
+        'tlol_rl.bin',
+        'tlol_rl.env'
     ],
     install_requires=[
         'absl-py>=0.1.0'
