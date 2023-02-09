@@ -21,7 +21,17 @@
 # SOFTWARE.
 """A League of Legends environment."""
 
+from configparser import ConfigParser
+import collections
+from absl import logging
+
 from tlol_rl.env import environment
+
+
+class Agent(collections.namedtuple("Agent", ["champ", "team"])):
+    """Define an Agent. Each agent has a champion and which team it belongs to."""
+    def __new__(cls, champion, team):
+        return super(Agent, cls).__new__(cls, champion, team)
 
 
 class LoLEnv(environment.Base):
@@ -30,8 +40,49 @@ class LoLEnv(environment.Base):
     The implementation details ofthe action and observation specs
     are in lib/features.py
     """
-    def __init__(self):
-        pass
+    def __init__(self,
+                 players=None,
+                 map_name=None,
+                 config_path=""):
+        """Create a League of Legends environment.
+        
+        Args:
+            map_name: Name of a League of Legends map. If non are chosen,
+            this defaults to `Summoners Rift`.
+            players: A list of Agent instances that specify who is playing.
+            config_path: Path to configuration file containing directories
+            as specified in README.md.
+        """
+
+        # Get and validate players
+        if not players:
+            raise ValueError("You must specify a list of players.")
+        for p in players:
+            if not isinstance(p, (Agent)):
+                pass
+        self.players = players
+
+        # Assign number of agents
+        self._num_agents = sum(1 for p in players if isinstance(p, Agent))
+
+        # Assign map name
+        if not map_name:
+            raise ValueError("Missing a map name.")
+        
+        # Extract configuration directories
+        try:
+            with open(config_path) as f:
+                cfg = ConfigParser()
+                cfg.read_string(f.read())
+        except:
+            raise IOError("Could not open config file: '%s'" % config_path)
+
+        self._finalise()
+    
+    @property
+    def map_name(self):
+        """Get the current map name."""
+        return self._map_name
 
     def action_spec(self):
         """Look at Features for full specs."""
@@ -58,3 +109,6 @@ class LoLEnv(environment.Base):
         times we're taking observations and actions from the live
         running game."""
         pass
+
+    def _finalize(self):
+        logging.info("Environment is ready.")
