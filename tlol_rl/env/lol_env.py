@@ -74,6 +74,8 @@ class LoLEnv(environment.Base):
             with open(config_path) as f:
                 cfg = ConfigParser()
                 cfg.read_string(f.read())
+                tlol_rl_server = cfg.get("dirs", "tlol_rl_server")
+                logging.info("TLoL-RL Server (Directory): " + tlol_rl_server)
         except:
             raise IOError("Could not open config file: '%s'" % config_path)
 
@@ -110,5 +112,5 @@ class LoLEnv(environment.Base):
         running game."""
         pass
 
-    def _finalize(self):
+    def _finalise(self):
         logging.info("Environment is ready.")

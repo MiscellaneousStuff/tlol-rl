@@ -31,7 +31,7 @@ pip install --upgrade tlol-rl/
 
 ## Config
 
-Once you have TLoL-RL installed, you will need to create a config.txt with
+Once you have TLoL-RL installed, you will need to create a `config.txt` with
 the following format:
 
 ```bash

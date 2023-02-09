@@ -31,11 +31,19 @@ from tlol_rl.env import run_loop
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
 flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
+flags.DEFINE_string("config_path", "./config.txt",
+    "File containing directories of GameServer, League client respectively")
+flags.DEFINE_string("map", "Summoners Rift", "Name of league map to use.")
 
 def main(unused_argv):
-    agents = [base_agent.BaseAgent()]
+    agents  = [base_agent.BaseAgent()]
+    players = agents
 
-    with lol_env.LoLEnv() as env:
+    with lol_env.LoLEnv(
+        players=players,
+        map_name=FLAGS.map,
+        config_path=FLAGS.config_path) as env:
+        
         run_loop.run_loop(agents, env)
 
 if __name__ == "__main__":
