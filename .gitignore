@@ -105,7 +105,7 @@ celerybeat.pid
 .env
 .venv
 env/
-!/tlol-rl/env
+!/tlol_rl/env
 venv/
 ENV/
 env.bak/

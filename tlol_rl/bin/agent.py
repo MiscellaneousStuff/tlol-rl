@@ -1,6 +1,6 @@
 # MIT License
 # 
-# Copyright (c) 2020 MiscellaneousStuff
+# Copyright (c) 2023MiscellaneousStuff
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Play as a single agent on Practice Tool."""
+"""Run an agent."""
 
 from absl import flags
 from absl import app
@@ -28,7 +28,8 @@ from tlol_rl.env import lol_env
 from tlol_rl.env import run_loop
 
 def main(unused_argv):
-    pass
+    with lol_env.LoLEnv():
+        run_loop.run_loop()
 
 if __name__ == "__main__":
     app.run(main)

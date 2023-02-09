@@ -43,6 +43,7 @@ setup(
     url='https://github.com/MiscellaneousStuff/tlol-rl',
     packages=[
         'tlol_rl',
+        'tlol_rl.agents',
         'tlol_rl.bin',
         'tlol_rl.env'
     ],
