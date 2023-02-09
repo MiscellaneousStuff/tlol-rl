@@ -35,13 +35,10 @@ Open = open
 class RunConfig(object):
     """Base class for different run configs."""
 
-    def __init__(self):
-        """Initialize the runconfig with the various directories needed.
-        
-        Args: Where to find the custom replays for the pylol project, not the
-        same as actual Legends of Legends v4.20 replays.
-        """
-        pass
+    def __init__(self, cwd=None, env=None):
+        """Initialize the runconfig with the various directories needed."""
+        self.cwd = cwd
+        self.env = env
 
     def start(self, **kwargs):
         raise NotImplementedError()

@@ -25,3 +25,4 @@ from tlol_rl.maps import lib
 
 class SummonersRift(lib.Map):
     players = 2
+    map_id  = 11

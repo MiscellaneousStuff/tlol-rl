@@ -22,8 +22,12 @@
 """Launch the game, or attach to an already running game and
 set up communication."""
 
+import subprocess
+from absl import logging
 import os
 
+from tlol_rl.lib import remote_controller
+from tlol_rl.lib import lcu
 
 class LoLLaunchError(Exception):
     pass
@@ -37,15 +41,41 @@ class LoLProcess(object):
     and where to find it.
     """
 
-    def __init__(self):
+    def __init__(self, run_config, exec_path, **kwargs):
         """Launch the League of Legends process.
         Args: 
         """
-        self.controller = None
 
-    def launch(self):
+        print("hi")
+
+        self._proc      = None
+        self.controller = None
+        self.check_exists(exec_path)
+
+        self._run_config = run_config
+
+        logging.info("Process kwargs:" + str(kwargs))
+
+        agent_count = len(kwargs["players"])
+
+        args = [exec_path,
+                "--mode unattended"]
+
+        try:
+            self.controller = remote_controller.RemoteController()
+            self._proc      = self.launch(run_config, args, **kwargs)
+        except:
+            self.close()
+            raise
+
+    def launch(self, run_config, args, **kwargs):
         """Launch the process and return the process object."""
-        pass
+        try:
+            # Run the League of Legends client
+            return subprocess.Popen(args, cwd=run_config.cwd, env=run_config.env)
+        except OSError:
+            logging.execution("Failed to launch")
+            raise LoLLaunchError("Failed to launch: %s" % args)
     
     def __enter__(self):
         return self.controller
@@ -55,7 +85,10 @@ class LoLProcess(object):
 
     def close(self):
         """(Optionally) Shut down the game and clean up."""
-        pass
+        if hasattr(self, "controller") and self.controller:
+            self.controller.close()
+            self.controller = None
+        self.shutdown()
     
     def shutdown(self):
         """(Optionally) Shutdown the game."""

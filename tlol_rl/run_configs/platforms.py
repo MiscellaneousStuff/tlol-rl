@@ -21,9 +21,12 @@
 # SOFTWARE.
 """Configs for how to run League of Legends on different platforms."""
 
+from absl import logging
 import os
 import platform
+from pathlib import Path
 
+from tlol_rl.lib import lol_process
 from tlol_rl.run_configs import lib
 
 
@@ -31,17 +34,32 @@ class LocalBase(lib.RunConfig):
     """Base run config for League of Legends installations."""
 
     def __init__(self, exec_dir, exec_name, cwd=None, env=None):
-        pass
+        exec_dir = os.path.expanduser(exec_dir)
+        self.exec_dir = exec_dir
+        self.exec_name = exec_name
+        cwd = cwd and os.path.join(exec_dir, cwd)
+        super(LocalBase, self).__init__(cwd=cwd, env=env)
         
     def start(self, **kwargs):
         """Launch the game, or attach to an existing game."""
-        pass
+        logging.info("LocalBase kwargs: " + str(kwargs))
+
+        if not os.path.isdir(self.exec_dir):
+            raise lol_process.LoLLaunchError(
+                "Failed to run GameServer at '%s" % self.exec_dir)
+
+        exec_path = Path(os.path.expanduser(self.exec_dir)) / self.exec_name
+
+        if not os.path.exists(exec_path):
+            raise lol_process.LoLLaunchError("No Riot Client binary found at: %s" % exec_path)
+        
+        return lol_process.LoLProcess(self, exec_path=exec_path, **kwargs)
 
 
 class Windows(LocalBase):
     """Run on windows."""
     def __init__(self, exec_dir):
-        pass
+        super(Windows, self).__init__(exec_dir, "LeagueClient.exe", cwd=exec_dir)
 
     @classmethod
     def priority(cls):

@@ -21,6 +21,10 @@
 # SOFTWARE.
 """Controllers take actions and generate observations."""
 
+from absl import logging
+import subprocess
+from subprocess import SubprocessError
+
 
 class ConnectError(Exception):
     pass
@@ -28,12 +32,18 @@ class ConnectError(Exception):
 
 class RemoteController(object):
     """Implements a python interface to interact with a League of Legends client.
+
     All of these are implemented as blocking calls, so wait for the response
     before returning.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, proc=None, **kwargs):
+        self._kwargs = kwargs
+
+        try:
+            logging.info("Initialise controller here")
+        except SubprocessError as e:
+            logging.error("Failed to initialise controller. Error message: %s" % e)
     
     def close(self):
         """Kill the related processes when the controller is done."""

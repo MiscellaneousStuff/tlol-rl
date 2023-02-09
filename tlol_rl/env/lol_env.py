@@ -21,12 +21,15 @@
 # SOFTWARE.
 """A League of Legends environment."""
 
+import time
+
 from configparser import ConfigParser
 import collections
 from absl import logging
 
 from tlol_rl import run_configs
 from tlol_rl.env import environment
+from tlol_rl.lib.lcu import LCU
 
 
 class Agent(collections.namedtuple("Agent", ["champ", "team"])):
@@ -76,14 +79,24 @@ class LoLEnv(environment.Base):
                 cfg = ConfigParser()
                 cfg.read_string(f.read())
                 tlol_rl_server = cfg.get("dirs", "tlol_rl_server")
+                lol_client     = cfg.get("dirs", "lol_client")
                 logging.info("TLoL-RL Server (Directory): " + tlol_rl_server)
+                logging.info("League of Legends Client (Directory): " + lol_client)
         except:
             raise IOError("Could not open config file: '%s'" % config_path)
 
-        self._map_name = map_name
-        self._run_config = run_configs.get(tlol_rl_server)
-        self._game_info = None
+        # Store environment variables
+        self._map_name   = map_name
+        self._run_config = run_configs.get(lol_client)
+        self._game_info  = None
+        self._lcu        = LCU(timeout=1)
 
+        # Launch the client, create a custom game and join it
+        self._launch_game(players=players,
+                          map_name=map_name)
+        self._create_join()
+
+        # Finalise RL related variables for the environment
         self._finalise()
     
     @property
@@ -116,6 +129,41 @@ class LoLEnv(environment.Base):
         times we're taking observations and actions from the live
         running game."""
         pass
+
+    def _launch_game(self, **kwargs):
+        """Either launch or attach to an existing game."""
+        logging.info("Initialising/attaching a game")
+
+        self._lol_procs   = [self._run_config.start(**kwargs)]
+        self._controllers = [p.controller for p in self._lol_procs]
+
+    def _create_join(self):
+        """Create the custom game, and join it."""
+        if not self._lcu.client_loaded():
+            raise OSError("Could not find League of Legends client")
+        else:
+            # Initialise LCU with `remoting-auth-token` and `app-port`
+            self._lcu.late_init()
+
+            # Create custom game
+            res = self._lcu.create_custom(title="TLoL-RL")
+            if not res.status_code == 200:
+                raise RuntimeError("Could not create custom game")
+
+            # Add bots
+            res = self._lcu.add_bot()
+            if not res.status_code == 204:
+                raise RuntimeError("Could not add bots to custom game")
+
+            # Start champion select
+            res = self._lcu.start_champ_select()
+            if not res.status_code == 200:
+                raise RuntimeError("Could not start champion select")
+            
+            # Select champion
+            res = self._lcu.pick_champion(champ_id=523) # Aphelios
+            if not res.status_code == 204:
+                raise RuntimeError("Could not pick champion")
 
     def _finalise(self):
         logging.info("Environment is ready.")
