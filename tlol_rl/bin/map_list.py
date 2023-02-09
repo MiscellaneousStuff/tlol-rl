@@ -19,17 +19,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""Print the list of defined maps."""
 
-"""Register/import the maps, and offer a way to create one by name.
-Users of maps should import this moudle:
-    from pylol import maps
-and create the maps by name:
-    maps.get("MapName")
-"""
+from absl import app
+from tlol_rl import maps
 
-from tlol_rl.maps import lib
-from tlol_rl.maps import summoners_rift
-from tlol_rl.maps import howling_abyss
+def main(unused_argv):    
+    for _, map_class in sorted(maps.get_maps().items()):
+        mp = map_class()
+        print(mp.name)
 
-get = lib.get
-get_maps = lib.get_maps
+if __name__ == "__main__":
+    app.run(main)
