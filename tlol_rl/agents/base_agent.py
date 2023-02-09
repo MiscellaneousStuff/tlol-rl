@@ -1,6 +1,6 @@
 # MIT License
 # 
-# Copyright (c) 2023MiscellaneousStuff
+# Copyright (c) 2023 MiscellaneousStuff
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Run an agent."""
+"""A base agent to write custom scripted agents."""
 
-from absl import flags
-from absl import app
+class BaseAgent(object):
+    """A base agent to write custom scripted agents.
+    It can also act as a passive agent that does nothing but no-ops.
+    """
 
-from tlol_rl.agents import base_agent
-from tlol_rl.env import lol_env
-from tlol_rl.env import run_loop
-
-FLAGS = flags.FLAGS
-flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
-flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
-
-def main(unused_argv):
-    agents = [base_agent.BaseAgent()]
-
-    with lol_env.LoLEnv() as env:
-        run_loop.run_loop(agents, env)
-
-if __name__ == "__main__":
-    app.run(main)
+    def __init__(self):
+        pass
+    
+    def setup(self, obs_spec, action_spec):
+        pass
+    
+    def reset(self):
+        pass
+    
+    def step(self, obs):
+        pass
