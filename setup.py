@@ -45,7 +45,8 @@ setup(
         'tlol_rl',
         'tlol_rl.agents',
         'tlol_rl.bin',
-        'tlol_rl.env'
+        'tlol_rl.env',
+        'tlol_rl.run_configs'
     ],
     install_requires=[
         'absl-py>=0.1.0'
