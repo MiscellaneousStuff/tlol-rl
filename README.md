@@ -9,3 +9,14 @@ Disclaimer: This project is not affiliated with Riot Games in any way.
 
 If you are interested in using this project or are just curious, send an email to
 [raokosan@gmail.com](mailto:raokosan@gmail.com).
+
+## Get TLoL-RL
+
+### From Source
+
+You can install TLoL-RL from a local clone of the git repo:
+
+```bash
+git clone git clone https://github.com/MiscellaneousStuff/tlol-rl.git
+pip install --upgrade tlol-rl/
+```
