@@ -41,12 +41,16 @@ class LoLProcess(object):
     and where to find it.
     """
 
-    def __init__(self, run_config, exec_path, **kwargs):
+    def __init__(self, run_config, exec_path, timeout_seconds=20, host=None,
+                 port=None, **kwargs):
         """Launch the League of Legends process.
         Args: 
+            run_config: `run_configs.lib.RunConfig` object.
+            exec_path: Path to the binary to run.
+            host: IP for the game to listen on for clients.
+            port: Port GameServer should listen on for clients.
+            timeout_seconds: Timeout for the TLoL-RL server to start before we give up.
         """
-
-        print("hi")
 
         self._proc      = None
         self.controller = None
@@ -58,11 +62,11 @@ class LoLProcess(object):
 
         agent_count = len(kwargs["players"])
 
-        args = [exec_path,
-                "--mode unattended"]
+        args = [exec_path, "--mode unattended"]
 
         try:
-            self.controller = remote_controller.RemoteController()
+            self.controller = remote_controller.RemoteController(
+                host, port, timeout_seconds, kwargs=kwargs)
             self._proc      = self.launch(run_config, args, **kwargs)
         except:
             self.close()

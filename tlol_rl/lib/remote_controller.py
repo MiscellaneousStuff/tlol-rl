@@ -25,33 +25,64 @@ from absl import logging
 import subprocess
 from subprocess import SubprocessError
 
+import redis
+
 
 class ConnectError(Exception):
     pass
 
 
+class RequestError(Exception):
+    def __init__(self, desc, res):
+        super(RequestError, self).__init__(desc)
+        self.res = res
+
+
 class RemoteController(object):
     """Implements a python interface to interact with a League of Legends client.
+
+    Will use Redis for now, may change to gRPC interface in the future.
 
     All of these are implemented as blocking calls, so wait for the response
     before returning.
     """
 
-    def __init__(self, proc=None, **kwargs):
+    def __init__(self, host, port, timeout_seconds, kwargs=[]):
         self._kwargs = kwargs
 
+        # Initialise client connection to a Redis server
+        timeout_seconds = timeout_seconds # or FLAGS.lol_timeout
+        host = host or "192.168.0.16"
+        port = port or 6379
+        self.host = host
+        self.port = port
+        logging.info("Redis IP: " + str(host) + ":" + str(self._kwargs["redis_port"]))
+        self.pool = redis.ConnectionPool(host=host, port=self._kwargs["redis_port"], db=0)
+        self.r = redis.Redis(connection_pool=self.pool)
+        self.timeout = timeout_seconds        
+        self._client = None
+
+        # Accept custom client port, if provided
+        self._kwargs["client_port"] = \
+            self._kwargs["client_port"] \
+                if "client_port" in kwargs else "5119"
+
         try:
-            logging.info("Initialise controller here")
+            logging.info("Initialising Redis.")
+            arr = ["redis-server",
+                "--bind", str(host),
+                "--port", str(self._kwargs["redis_port"])]
+            self._proc = subprocess.Popen(arr)
         except SubprocessError as e:
-            logging.error("Failed to initialise controller. Error message: %s" % e)
+            logging.error("Could not open Redis. Error message: %s" % e)
     
     def close(self):
         """Kill the related processes when the controller is done."""
-        pass
+        self._proc.kill()
     
     def connect(self):
-        """Handle the process for the controller connecting to the server which
-        is executing actions and returning observations."""
+        """Waits until clients can join the TLoL-RL server then
+        waits until agents can connect."""
         pass
 
     def observe(self):
@@ -63,14 +94,16 @@ class RemoteController(object):
         pass
         
     def quit(self):
-        """Shut down the controller process."""
-        pass
+        """Shut down the redis process."""
+        self.r = None
+        self._proc.kill()
 
     # """Implement player actions and observations here..."""
 
     def restart(self):
         """Restart the controller. This will either restart the game
         or just close a connection to an existing game."""
+        pass
 
     def save_replay(self):
         """NOTE: TBD. This feature could include using TLoL to convert

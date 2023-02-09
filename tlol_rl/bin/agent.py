@@ -29,6 +29,8 @@ from tlol_rl.env import lol_env
 from tlol_rl.env import run_loop
 
 FLAGS = flags.FLAGS
+flags.DEFINE_string("host", "localhost", "IP Host of Redis")
+flags.DEFINE_integer("redis_port", 6379, "IP Port of Redis")
 flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
 flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
 flags.DEFINE_string("config_path", "./config.txt",
@@ -43,6 +45,8 @@ def main(unused_argv):
     players = [lol_env.Agent(champion=FLAGS.champion, team="BLUE")]
 
     with lol_env.LoLEnv(
+        host=FLAGS.host,
+        redis_port=FLAGS.redis_port,
         players=players,
         map_name=FLAGS.map,
         config_path=FLAGS.config_path) as env:

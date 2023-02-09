@@ -54,6 +54,8 @@ class LoLEnv(environment.Base):
     are in lib/features.py
     """
     def __init__(self,
+                 host=None,
+                 redis_port=None,
                  players=None,
                  map_name=None,
                  config_path=""):
@@ -102,7 +104,9 @@ class LoLEnv(environment.Base):
         self._lcu        = LCU(timeout=1)
 
         # Launch the client, create a custom game and join it
-        self._launch_game(players=players,
+        self._launch_game(host=host,
+                          redis_port=redis_port,
+                          players=players,
                           map_name=map_name)
         self._create_join(players=players,
                           map_name=map_name)
@@ -144,6 +148,9 @@ class LoLEnv(environment.Base):
     def _launch_game(self, **kwargs):
         """Either launch or attach to an existing game."""
         logging.info("Initialising/attaching a game")
+
+        kwargs["host"] = kwargs["host"]
+        kwargs["redis_port"] = kwargs["redis_port"]
 
         self._lol_procs   = [self._run_config.start(**kwargs)]
         self._controllers = [p.controller for p in self._lol_procs]
