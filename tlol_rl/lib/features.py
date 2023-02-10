@@ -212,12 +212,6 @@ class Features(object):
             obs_available_actions["can_spell_4"] or \
             obs_available_actions["can_spell_5"]:
             available_actions.add(2)
-        """
-        print("FUNCTIONS AVAILABLE:", actions.FUNCTIONS_AVAILABLE)
-        for i, func in six.iteritems(actions.FUNCTIONS_AVAILABLE):
-            if func.avail_fn(obs):
-                available_actions.add(i)
-        """
         
         return list(available_actions)
 
@@ -294,11 +288,11 @@ class Features(object):
             "time": float(obs["time"]),
         })
 
-        """
         # Set available actions
-        out["available_actions"] = np.array(
-          self.available_actions(obs["observation"]), dtype=np.int32)
-        """
+        out["available_actions"] = \
+            np.array(
+                self.available_actions(obs),
+                dtype=np.int32)
         
         return out
 

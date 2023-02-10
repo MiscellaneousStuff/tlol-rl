@@ -46,8 +46,8 @@ flags.DEFINE_string("champion", None, "Champion for agent to play.")
 flags.mark_flag_as_required("champion")
 
 def main(unused_argv):
-    agents  = [base_agent.BaseAgent()]
-    # agents  = [random_agent.RandomAgent()]
+    # agents  = [base_agent.BaseAgent()]
+    agents  = [random_agent.RandomAgent()]
     players = [lol_env.Agent(champion=FLAGS.champion, team="BLUE")]
 
     with lol_env.LoLEnv(
