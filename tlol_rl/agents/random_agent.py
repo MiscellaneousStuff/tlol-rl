@@ -35,8 +35,10 @@ class RandomAgent(base_agent.BaseAgent):
     def step(self, obs):
         super(RandomAgent, self).step(obs)
         
-        function_id = numpy.random.choice(obs["available_actions"])        
+        function_id = numpy.random.choice(
+            obs.observation["available_actions"])        
         args = [[numpy.random.randint(0, size) for size in arg.sizes]
                 for arg in self.action_spec[0].functions[function_id].args]  
 
+        logging.info("function_id, args: " + str(function_id) + " " + str(args))
         return actions.FunctionCall(function_id, args)
