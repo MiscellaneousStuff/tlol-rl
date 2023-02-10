@@ -24,6 +24,36 @@
 import abc
 import enum
 import six
+import collections
+
+
+class TimeStep(collections.namedtuple(
+        'TimeStep', ['step_type', 'reward', 'discount', 'observation'])):
+    """Returned with every call to `step` and `reset` on an environment.
+    A `TimeStep` contains the data emitted by an environment at each stop of
+    interaction. A `TimeStep` holds a `step_type`, an `observation`, and an
+    associated `reward` and `discount`.
+    The first `TimeStep` in a sequence will have `StepType.FIRST`. The final
+    `TimeStep` will have `StepType.LAST`. All other `TimeStep`s in a sequence will
+    have `StepType.MID.
+    Attributes:
+        step_type: A `StepType` enum value.
+        reward: A scalar, or 0 if `step_type` is `StepType.FIRST`, i.e. at the
+            start of a sequence.
+        discount: A discount value in the range `[0, 1]`, or 0 if `step_type`
+            is `StepType.FIRST`, i.e. at the start of a sequence.
+        observation: A NumPy array, or a dict, list or tuple of arrays.
+    """
+    __slots__ = ()
+
+    def first(self):
+        return self.step_type is StepType.FIRST
+    
+    def mid(self):
+        return self.step_type is StepType.MID
+    
+    def last(self):
+        return self.step_type is StepType.LAST
 
 
 class StepType(enum.IntEnum):

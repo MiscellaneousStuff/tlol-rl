@@ -26,7 +26,7 @@ from tlol_rl.lib import lol_process
 from tlol_rl.run_configs import lib
 from tlol_rl.run_configs import platforms
 
-def get(game_server_dir):
+def get(riot_client_dir, tlol_server_dir):
     """Get the config chosen by flags."""
     configs = {c.name(): c
         for c in lib.RunConfig.all_subclasses() if c.priority()}
@@ -36,4 +36,5 @@ def get(game_server_dir):
     if not configs:
         raise lol_process.LoLLaunchError("No valid run_configs found.")
     
-    return max(configs.values(), key=lambda c: c.priority())(game_server_dir)
+    return max(configs.values(), key=lambda c: c.priority())(
+        riot_client_dir, tlol_server_dir)

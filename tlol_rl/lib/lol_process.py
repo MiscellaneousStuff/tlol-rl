@@ -27,7 +27,7 @@ from absl import logging
 import os
 
 from tlol_rl.lib import remote_controller
-from tlol_rl.lib import lcu
+
 
 class LoLLaunchError(Exception):
     pass
@@ -41,20 +41,27 @@ class LoLProcess(object):
     and where to find it.
     """
 
-    def __init__(self, run_config, exec_path, timeout_seconds=20, host=None,
-                 port=None, **kwargs):
+    def __init__(self,
+                 run_config,
+                 riot_client_exec_path,
+                 tlol_rl_server_path,
+                 timeout_seconds=60,
+                 host=None,
+                 port=None,
+                 **kwargs):
         """Launch the League of Legends process.
         Args: 
             run_config: `run_configs.lib.RunConfig` object.
-            exec_path: Path to the binary to run.
-            host: IP for the game to listen on for clients.
-            port: Port GameServer should listen on for clients.
+            riot_client_exec_path: Path to the Riot Client binary to run.
+            tlol_rl_server_path: Path to the TLoL RL Server binary to run.
+            host: IP Address for for Redis server to be hosted on.
+            port: Port for Redis server to be hosted on.
             timeout_seconds: Timeout for the TLoL-RL server to start before we give up.
         """
 
-        self._proc      = None
         self.controller = None
-        self.check_exists(exec_path)
+        self.check_exists(riot_client_exec_path)
+        self.check_exists(tlol_rl_server_path)
 
         self._run_config = run_config
 
@@ -62,12 +69,16 @@ class LoLProcess(object):
 
         agent_count = len(kwargs["players"])
 
-        args = [exec_path, "--mode unattended"]
-
         try:
-            self.controller = remote_controller.RemoteController(
-                host, port, timeout_seconds, kwargs=kwargs)
-            self._proc      = self.launch(run_config, args, **kwargs)
+            kwargs["tlol_rl_server_path"] = tlol_rl_server_path
+            self.controller = \
+                remote_controller.RemoteController(
+                    host,
+                    port,
+                    timeout_seconds,
+                    kwargs=kwargs)
+            args = [riot_client_exec_path, "--mode unattended"]
+            self._proc = self.launch(run_config, args, **kwargs)
         except:
             self.close()
             raise
@@ -76,7 +87,10 @@ class LoLProcess(object):
         """Launch the process and return the process object."""
         try:
             # Run the League of Legends client
-            return subprocess.Popen(args, cwd=run_config.cwd, env=run_config.env)
+            return subprocess.Popen(
+                args,
+                cwd=run_config.riot_client_cwd,
+                env=run_config.env)
         except OSError:
             logging.execution("Failed to launch")
             raise LoLLaunchError("Failed to launch: %s" % args)

@@ -132,3 +132,4 @@ dmypy.json
 # Ignore config and Redis
 config.txt
 dump.rdb
+redis.conf

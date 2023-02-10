@@ -35,10 +35,11 @@ Open = open
 class RunConfig(object):
     """Base class for different run configs."""
 
-    def __init__(self, cwd=None, env=None):
+    def __init__(self, riot_client_cwd=None, tlol_rl_server_cwd=None, env=None):
         """Initialize the runconfig with the various directories needed."""
-        self.cwd = cwd
-        self.env = env
+        self.riot_client_cwd    = riot_client_cwd
+        self.tlol_rl_server_cwd = tlol_rl_server_cwd
+        self.env                = env
 
     def start(self, **kwargs):
         raise NotImplementedError()

@@ -29,6 +29,8 @@ def run_loop(agents, env, max_steps=0, max_episodes=0):
     controller = env._controllers[0]
     controller.connect()
 
+    logging.info("runloop->env.reset()")
+
     # A run loop for agent/environment interaction
     total_episodes = 0
     steps = 0
@@ -38,31 +40,43 @@ def run_loop(agents, env, max_steps=0, max_episodes=0):
     observation_spec = [env.observation_spec() for _ in agents]
     action_spec = [env.action_spec() for _ in agents]
 
+    logging.info("runloop->agent init")
+
     # Agent Initialisation
     for agent, obs_spec, act_spec in zip(agents, observation_spec, action_spec):
         agent.setup(obs_spec, act_spec)
     
+    logging.info("runloop->init episodes run loop")
+
     try:
         while not max_episodes or total_episodes < max_episodes:
+            logging.info("runloop->env.reset()")
             total_episodes += 1
             timesteps = env.reset()
             
+            logging.info("runloop->reset agents for current episode")
             for a in agents:
                 a.reset()
+
+            logging.info("runloop->init current episode run loop")
             while True:
                 steps += 1
                 if max_steps and steps > max_steps: # +1 for initial reset action
                     return
-                logging.info("run_loop->step: " + str(steps))
+                logging.info("run_loop->agent steps: " + str(steps))
                 actions = [agent.step(timestep)
                            for agent, timestep in zip(agents, timesteps)]
                 
                 if timesteps[0].last():
                     break
                 
+                logging.info("run_loop->env step: " + str(steps))
                 timesteps = env.step(actions)
+                logging.info("run_loop->env step (timesteps): " + str(timesteps))
+
     except KeyboardInterrupt:
         pass
+
     finally:
         elapsed_time = (time.time() - start_time) + 1e-9 # NOTE: Make sure it's never 0
         print("Took %.3f seconds for %s steps: %.3f fps" % (

@@ -24,11 +24,16 @@
 from absl import flags
 from absl import app
 
-from tlol_rl.agents import base_agent
+from tlol_rl.agents import base_agent, random_agent
 from tlol_rl.env import lol_env
 from tlol_rl.env import run_loop
+from tlol_rl.lib import point_flag
 
 FLAGS = flags.FLAGS
+point_flag.DEFINE_point("feature_map_size", "16000",
+                        "Resolution for screen feature layers.")
+point_flag.DEFINE_point("feature_move_range", "8",
+                        "Resolution for screen feature layers.")
 flags.DEFINE_string("host", "localhost", "IP Host of Redis")
 flags.DEFINE_integer("redis_port", 6379, "IP Port of Redis")
 flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
@@ -42,16 +47,20 @@ flags.mark_flag_as_required("champion")
 
 def main(unused_argv):
     agents  = [base_agent.BaseAgent()]
+    # agents  = [random_agent.RandomAgent()]
     players = [lol_env.Agent(champion=FLAGS.champion, team="BLUE")]
 
     with lol_env.LoLEnv(
         host=FLAGS.host,
         redis_port=FLAGS.redis_port,
         players=players,
+        agent_interface_format=lol_env.parse_agent_interface_format(
+            feature_map=FLAGS.feature_map_size,
+            feature_move_range=FLAGS.feature_move_range),
         map_name=FLAGS.map,
         config_path=FLAGS.config_path) as env:
         
-        run_loop.run_loop(agents, env)
+        run_loop.run_loop(agents, env, FLAGS.max_steps, FLAGS.max_episodes)
 
 if __name__ == "__main__":
     app.run(main)

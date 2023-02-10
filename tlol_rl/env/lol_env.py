@@ -21,17 +21,26 @@
 # SOFTWARE.
 """A League of Legends environment."""
 
-import time
+import enum
 
 from configparser import ConfigParser
 import collections
 from absl import logging
 from pathlib import Path
 
-
 from tlol_rl import run_configs
 from tlol_rl.env import environment
 from tlol_rl.lib.lcu import LCU
+from tlol_rl.lib import features
+from tlol_rl.lib import common
+
+def to_list(arg):
+    return arg if isinstance(arg, list) else [arg]
+
+class Team(enum.IntEnum):
+    BLUE = 0
+    PURPLE = 1
+    NEUTRAL = 2
 
 def get_champ_ids():
     champ_ids = {}
@@ -41,10 +50,16 @@ def get_champ_ids():
             champ_ids[champ] = int(id)
     return champ_ids
 
+
 class Agent(collections.namedtuple("Agent", ["champ", "team"])):
     """Define an Agent. Each agent has a champion and which team it belongs to."""
     def __new__(cls, champion, team):
         return super(Agent, cls).__new__(cls, champion, team)
+
+
+Dimensions = features.Dimensions
+AgentInterfaceFormat = features.AgentInterfaceFormat
+parse_agent_interface_format = features.parse_agent_interface_format
 
 
 class LoLEnv(environment.Base):
@@ -57,6 +72,7 @@ class LoLEnv(environment.Base):
                  host=None,
                  redis_port=None,
                  players=None,
+                 agent_interface_format=None,
                  map_name=None,
                  config_path=""):
         """Create a League of Legends environment.
@@ -77,6 +93,11 @@ class LoLEnv(environment.Base):
                 raise ValueError(
                     "Expected players to be of type Agent. Got: %s." % p)
         self.players = players
+
+        # Validate agent interface format
+        if agent_interface_format is None:
+            raise ValueError("Please specify agent_interface_format.")
+        self._agent_interface_format = agent_interface_format
 
         # Assign number of agents
         self._num_agents = sum(1 for p in players if isinstance(p, Agent))
@@ -99,9 +120,9 @@ class LoLEnv(environment.Base):
 
         # Store environment variables
         self._map_name   = map_name
-        self._run_config = run_configs.get(lol_client)
+        self._run_config = run_configs.get(lol_client, tlol_rl_server)
         self._game_info  = None
-        self._lcu        = LCU(timeout=1)
+        self._lcu        = LCU(timeout=2)
 
         # Launch the client, create a custom game and join it
         self._launch_game(host=host,
@@ -119,13 +140,13 @@ class LoLEnv(environment.Base):
         """Get the current map name."""
         return self._map_name
 
-    def action_spec(self):
-        """Look at Features for full specs."""
-        pass
-    
     def observation_spec(self):
         """Look at Features for full specs."""
-        pass
+        return tuple(f.observation_spec() for f in self._features)
+
+    def action_spec(self):
+        """Look at Features for full specs."""
+        return tuple(f.action_spec() for f in self._features)
     
     def close(self):
         """Cleanly closes the environment by releasing/destroying
@@ -157,9 +178,13 @@ class LoLEnv(environment.Base):
     def _get_observations(self):
         """Get the raw observations from the controllers and
         convert them into NumPy arrays."""
+        logging.info("_get_observations request and transform")
+
         obs = [self._controllers[0].observe() for _ in self.players]
         agent_obs = [self._features[0].transform_obs(o) for o in obs]
         
+        logging.info("_get_observations received")
+
         # Save last observation to calculate rewards
         self._last_agent_obs = self._agent_obs
 
@@ -171,7 +196,9 @@ class LoLEnv(environment.Base):
         convert them into `TimeStep`s."""
         self._get_observations()
 
-        reward = 0
+        reward = [0] * self._num_agents
+
+        logging.info("_observe")
 
         ret_val = tuple(environment.TimeStep(
             step_type=self._state,
@@ -180,7 +207,13 @@ class LoLEnv(environment.Base):
             observation=o
         ) for r, o in zip(reward, self._agent_obs))
 
+        logging.info("_observe->ret_val: " + str(ret_val))
+
         return ret_val
+
+    def _step(self):
+        logging.info("_step")
+        return self._observe()
 
     def step(self, actions):
         """Apply actions, step the world forward, and return observations.
@@ -193,21 +226,29 @@ class LoLEnv(environment.Base):
         Returns:
             A tuple of TimeStep namedtuples, one per agent."""
 
+        logging.info("Current env._state: " + str(self._state))
         if self._state == environment.StepType.LAST:
             return self.reset()
         
+        new_actions = []
+        for _, a in zip(self._obs, actions):
+            # print("CURRENT OBS ENV STEP:", o)
+            new_actions.append(self._features[0].transform_action(a))
+
+        logging.info("new_actions: " + str(new_actions))
+
+        for c, a in zip(self._controllers, actions):
+            c.actions(common.RequestAction(actions=new_actions))
+
+        logging.info("post_actions")
+
         self._state = environment.StepType.MID
-        return self._step()
 
-    def _launch_game(self, **kwargs):
-        """Either launch or attach to an existing game."""
-        logging.info("Initialising/attaching a game")
+        _step = self._step()
 
-        kwargs["host"] = kwargs["host"]
-        kwargs["redis_port"] = kwargs["redis_port"]
+        logging.info("_step (obs): " + str(_step))
 
-        self._lol_procs   = [self._run_config.start(**kwargs)]
-        self._controllers = [p.controller for p in self._lol_procs]
+        return _step
 
     def _create_join(self, **kwargs):
         """Create the custom game, and join it."""
@@ -246,6 +287,11 @@ class LoLEnv(environment.Base):
         self._episode_steps = 0
         self._episode_count = 0
 
+        # Features
+        self._features = [features.features_from_game_info(
+            agent_interface_format=self._agent_interface_format
+        )]
+
         # Init observations and environment state
         self._last_agent_obs = [None] * self._num_agents
         self._obs = [None] * self._num_agents
@@ -253,3 +299,13 @@ class LoLEnv(environment.Base):
         self._state = environment.StepType.LAST
 
         logging.info("Environment is ready.")
+    
+    def _launch_game(self, **kwargs):
+        """Either launch or attach to an existing game."""
+        logging.info("Initialising/attaching a game")
+
+        kwargs["host"] = kwargs["host"]
+        kwargs["redis_port"] = kwargs["redis_port"]
+
+        self._lol_procs   = [self._run_config.start(**kwargs)]
+        self._controllers = [p.controller for p in self._lol_procs]
