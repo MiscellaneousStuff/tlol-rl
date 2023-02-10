@@ -36,5 +36,6 @@ the following format:
 
 ```bash
 [dirs]
-tlol_rl_server = .../Server.exe
+tlol_rl_server = ..\Path\To\LView\
+lol_client     = ..\Path\To\Riot Games\League of Legends\
 ```
