@@ -19,30 +19,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""Example of a basic full game environment implementing PPO.
 
-"""TLoL-RL module: https://github.com/MiscellaneousStuff/tlol-rl ."""
+Runs the `Escape1DEnv` environment which trains the agent to go the
+opposite direction of the enemy agent by clicking away or using spells."""
 
-__version__ = "1.0.0"
+from absl import flags
+from absl import app
 
-import os
+FLAGS = flags.FLAGS
+flags.DEFINE_string("config_path", "./config.txt",
+    "File containing directories of GameServer, League client respectively")
+flags.DEFINE_string("host", "localhost", "IP Host of Redis")
+flags.DEFINE_integer("redis_port", 6379, "IP Port of Redis")
+flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
+flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
+flags.DEFINE_string("map", "Summoners Rift", "Name of league map to use.")
+flags.DEFINE_string("champion", None, "Champion for agent to play.")
 
-from gym.envs.registration import register
+def main(unused_argv):
+    pass
 
-register(
-    id='LoLGame-v0',
-    entry_point='tlol_rl.envs:LoLGameEnv',
-    kwargs={}
-)
-
-register(
-    id='LoL1DEscape-v0',
-    entry_point='tlol_rl.envs:Escape1DEnv',
-    kwargs={}
-)
-
-def load_tests(loader, standard_tests, unused_pattern):
-    """Our tests end in `_test.py`, so need to ovveride the test directory."""
-    this_dir = os.path.dirname(__file__)
-    package_tests = loader.discover(start_dir=this_dir, pattern="*_test.py")
-    standard_tests.addTests(package_tests)
-    return standard_tests
+if __name__ == "__main__":
+    app.run(main)

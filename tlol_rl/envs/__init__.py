@@ -19,30 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""Import all of the available OpenAI Gym environments."""
 
-"""TLoL-RL module: https://github.com/MiscellaneousStuff/tlol-rl ."""
-
-__version__ = "1.0.0"
-
-import os
-
-from gym.envs.registration import register
-
-register(
-    id='LoLGame-v0',
-    entry_point='tlol_rl.envs:LoLGameEnv',
-    kwargs={}
-)
-
-register(
-    id='LoL1DEscape-v0',
-    entry_point='tlol_rl.envs:Escape1DEnv',
-    kwargs={}
-)
-
-def load_tests(loader, standard_tests, unused_pattern):
-    """Our tests end in `_test.py`, so need to ovveride the test directory."""
-    this_dir = os.path.dirname(__file__)
-    package_tests = loader.discover(start_dir=this_dir, pattern="*_test.py")
-    standard_tests.addTests(package_tests)
-    return standard_tests
+from tlol_rl.envs.escape_1d import Escape1DEnv
+from tlol_rl.envs.lol_game import LoLGameEnv
