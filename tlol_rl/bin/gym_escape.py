@@ -19,15 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Example of a basic full game environment with no actions."""
+"""Example of a basic full game environment implementing PPO.
 
-import gym
-from absl import flags
-from tlol_rl.lib import actions
+Runs the `Escape1DEnv` environment which trains the agent to go the
+opposite direction of the enemy agent by clicking away or using spells."""
 
-import tlol_rl.envs
-
-from absl import logging
 from absl import flags
 from absl import app
 
@@ -41,28 +37,8 @@ flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
 flags.DEFINE_string("map", "Summoners Rift", "Name of league map to use.")
 flags.DEFINE_string("champion", None, "Champion for agent to play.")
 
-flags.mark_flag_as_required("champion")
-
-_NO_OP = [actions.FUNCTIONS.no_op.id]
-
 def main(unused_argv):
-    env = gym.make("LoLGame-v0")
-    env.settings["host"]        = FLAGS.host
-    env.settings["redis_port"]  = FLAGS.redis_port
-    env.settings["map_name"]    = FLAGS.map
-    env.settings["champion"]    = FLAGS.champion
-    env.settings["config_path"] = FLAGS.config_path
-
-    obs_n = env.reset()
-
-    for step in range(10000):
-        action = [_NO_OP] * env.n_agents
-        obs_n, reward_n, done_n, _ = env.step(action)
-        logging.info("Step, Reward: " + str(step+1) + "," + str(reward_n))
-        if any(done_n):
-            break
-
-    env.close()
+    pass
 
 if __name__ == "__main__":
     app.run(main)

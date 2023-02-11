@@ -19,13 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Example of a basic full game environment with no actions."""
+"""Example of a basic full game environment with random actions."""
 
 import gym
-from absl import flags
-from tlol_rl.lib import actions
+import numpy as np
 
 import tlol_rl.envs
+from tlol_rl.lib import actions
 
 from absl import logging
 from absl import flags
@@ -52,17 +52,25 @@ def main(unused_argv):
     env.settings["map_name"]    = FLAGS.map
     env.settings["champion"]    = FLAGS.champion
     env.settings["config_path"] = FLAGS.config_path
+    
+    done_n = [False for _ in range(env.n_agents)]
 
     obs_n = env.reset()
 
     for step in range(10000):
-        action = [_NO_OP] * env.n_agents
-        obs_n, reward_n, done_n, _ = env.step(action)
+        actions = [random_action(env, timestep) for timestep in obs_n]
+        obs_n, reward_n, done_n, _ = env.step(actions)
         logging.info("Step, Reward: " + str(step+1) + "," + str(reward_n))
         if any(done_n):
             break
 
     env.close()
+
+def random_action(env, obs):
+    function_id = np.random.choice(obs.observation["available_actions"])
+    args = [[np.random.randint(0, size) for size in arg.sizes]
+            for arg in env.action_spec[0].functions[function_id].args]
+    return [function_id] + args
 
 if __name__ == "__main__":
     app.run(main)
