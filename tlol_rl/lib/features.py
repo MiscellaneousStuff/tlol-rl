@@ -285,7 +285,11 @@ class Features(object):
 
         # Observation output
         out = named_array.NamedDict({
-            "time": float(obs["time"]),
+            "time":    float(obs["time"]),
+            "me_x":    float(obs["self"]["pos_x"]),
+            "me_y":    float(obs["self"]["pos_y"]),
+            "enemy_x": float(obs["enemy_unit"]["pos_x"]),
+            "enemy_y": float(obs["enemy_unit"]["pos_y"]),
         })
 
         # Set available actions

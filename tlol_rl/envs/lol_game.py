@@ -44,11 +44,8 @@ class LoLGameEnv(gym.Env):
             feature_move_range=8),
     }
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, obs_spec=None, act_spec=None, **kwargs) -> None:
         super().__init__()
-
-        self.observation_space = Box(low=0, high=1, shape=(1,), dtype=np.float32)
-        self.action_space      = Box(low=0, high=1, shape=(1,), dtype=np.float32)
 
         self._kwargs = kwargs
         self._env = None
@@ -59,6 +56,9 @@ class LoLGameEnv(gym.Env):
         self._num_step = 0
         self._episode_reward = [0.0] * self.n_agents
         self._total_reward = [0.0] * self.n_agents
+
+        # self.observation_space = obs_spec
+        # self.action_space      = act_spec
 
     def step(self, actions):
         return self._safe_step(actions)
@@ -99,7 +99,6 @@ class LoLGameEnv(gym.Env):
         self._episode_reward = [0.0] * self.n_agents
         logger.info(" Episode %d starting...", self._episode)
         obs = self._env.reset()
-        # self.available_actions = obs.observation['available_actions']
         return obs
 
     def _init_env(self):

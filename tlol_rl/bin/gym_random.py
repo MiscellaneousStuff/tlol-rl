@@ -67,6 +67,7 @@ def main(unused_argv):
     env.close()
 
 def random_action(env, obs):
+    logging.info("OBS: " + str(obs.observation))
     function_id = np.random.choice(obs.observation["available_actions"])
     args = [[np.random.randint(0, size) for size in arg.sizes]
             for arg in env.action_spec[0].functions[function_id].args]

@@ -34,14 +34,14 @@ point_flag.DEFINE_point("feature_map_size", "16000",
                         "Resolution for screen feature layers.")
 point_flag.DEFINE_point("feature_move_range", "8",
                         "Resolution for screen feature layers.")
-flags.DEFINE_string("host", "localhost", "IP Host of Redis")
-flags.DEFINE_integer("redis_port", 6379, "IP Port of Redis")
+flags.DEFINE_string("host",          "localhost", "IP Host of Redis")
+flags.DEFINE_integer("redis_port",   6379, "IP Port of Redis")
 flags.DEFINE_integer("max_episodes", 0, "Maximum number of episodes to run")
-flags.DEFINE_integer("max_steps", 0, "Maximum number of steps to run")
-flags.DEFINE_string("config_path", "./config.txt",
+flags.DEFINE_integer("max_steps",    0, "Maximum number of steps to run")
+flags.DEFINE_string("config_path",   "./config.txt",
     "File containing directories of GameServer, League client respectively")
-flags.DEFINE_string("map", "Summoners Rift", "Name of league map to use.")
-flags.DEFINE_string("champion", None, "Champion for agent to play.")
+flags.DEFINE_string("map",           "Summoners Rift", "Name of league map to use.")
+flags.DEFINE_string("champion",      None, "Champion for agent to play.")
 
 flags.mark_flag_as_required("champion")
 
