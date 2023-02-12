@@ -46,8 +46,10 @@ setup(
         'tlol_rl.agents',
         'tlol_rl.bin',
         'tlol_rl.env',
+        'tlol_rl.envs',
         'tlol_rl.lib',
         'tlol_rl.maps',
+        'tlol_rl.rpc',
         'tlol_rl.run_configs'
     ],
     install_requires=[
