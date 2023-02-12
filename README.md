@@ -35,14 +35,14 @@ You can install TLoL-RL from a local clone of the git repo:
 
 ```bash
 git clone https://github.com/MiscellaneousStuff/tlol-rl.git
-pip install --upgrade tlol-rl/
+pip install -e tlol-rl/
 ```
 
 ## Config
 
 Once you have TLoL-RL installed, you will need to create a `config.txt` file.
 This needs to be located in the same working directory as any call to
-`python -m tlol_rl.bin.agents` or any other `tlol_rl.bin` script which relies
+`python -m tlol_rl.bin.agent` or any other `tlol_rl.bin` script which relies
 on `config.txt`. The configuration file uses the following format:
 
 ```bash
