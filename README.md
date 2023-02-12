@@ -1,3 +1,12 @@
+<div align="center">
+    <a href="https://www.youtube.com/watch?v=xtlteIFVrR8"
+       target="_blank">
+       <img src="http://img.youtube.com/vi/xtlteIFVrR8/0.jpg"
+            alt="League of Legends (TLoL-RL): Reinforcement Learning (Part 1 - Setup)"
+            width="240" height="180" border="10" />
+    </a>
+</div>
+
 # TLoL-RL - League of Legends Reinforcement Learning Library
 
 TLoL-RL (Reinforcement Learning Python Module) - League of Legends RL Module (Allows ML Models to Play League of Legends). It provides an interface for an agent to play
