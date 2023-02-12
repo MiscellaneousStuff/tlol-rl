@@ -50,3 +50,19 @@ on `config.txt`. The configuration file uses the following format:
 tlol_rl_server = ..\Path\To\LView\
 lol_client     = ..\Path\To\Riot Games\League of Legends\
 ```
+
+## Running
+
+To test run the environment, go to where your config.txt file is and 
+run:
+
+```bash
+python -m tlol_rl.bin.agent --champion "Ezreal"
+```
+
+You can replace "Ezreal" with any champion that your account owns!
+Between runs, you need to make sure that `ConsoleApplication.exe`
+has been stopped. Go to Task Manager and end the process if it
+is still running. You also need to make sure that `dump.rdb` is
+deleted if it exists in the same folder as `config.txt`. These
+issues will be fixed in the future.
